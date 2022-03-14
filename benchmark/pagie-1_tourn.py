@@ -15,10 +15,15 @@ DATA_MAX = 5
 DATA_MIN = -5
 STEP_SIZE = 0.4
 DATA_SIZE = (DATA_MAX - DATA_MIN) / STEP_SIZE
+NUM_FEATURES = 2
+mydata = np.transpose([np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
+
 
 
 # Define new functions
 def protectedDiv(left, right):
+    if right == 0:
+        return 1
     try:
         return left / right
     except ZeroDivisionError:
@@ -75,19 +80,25 @@ def pagie1(x, y):
         return 1 / (1 + pow(x, -4)) + 1 / (1 + pow(y, -4))
 
 
-def evalSymbReg(individual, points, realFunc):
+def evalSymbReg(individual, X, y):
     # Transform the tree expression in a callable function
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
-    # sqerrors = ((func(x[0], x[1]) - realFunc(x)) ** 2 for x in points)
-    sqerrors = [(func(x1, x2) - realFunc(x1,  x2)) ** 2 for x1, x2 in zip(points[0], points[1])]
+    sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
 
-    return math.fsum(sqerrors) / len(points[0]),
+    return math.fsum(sqerrors) / len(X),
+
+def test(toolbox, ind, X, y):
+    print("Testing HOF for konrs7... ")
+    func = toolbox.compile(expr=ind)
+    sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
+    df_log = pd.DataFrame(sqerrors)
+    df_log.to_csv('..\hoftest.csv', index=False)
+    print(sqerrors)
 
 
 # toolbox.register("evaluate", evalSymbReg, points=[x/10. for x in range(-10,10)])
-toolbox.register("evaluate", evalSymbReg, points=[np.around(np.linspace(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(2)],
-                 realFunc=pagie1)
+toolbox.register("evaluate", evalSymbReg, X=mydata, y=pagie1)
 toolbox.register("select", tools.selTournament, tournsize=3)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
@@ -139,6 +150,13 @@ def plotData(logbook):
 
     plt.show()
 
+def test(toolbox, ind, X, y):
+    func = toolbox.compile(expr=ind)
+    sqerrors = [(func(x1, x2) - y(x1, x2)) ** 2 for x1, x2 in zip(X[0], X[1])]
+    df_log = pd.DataFrame(sqerrors)
+    df_log.to_csv('..\hoftest.csv', index=False)
+    print(sqerrors)
+
 
 def main():
     random.seed()
@@ -163,7 +181,12 @@ def main():
     # df_log.to_csv('..\data.csv', index=False)
 
     # Plot data
-    plotData(log)
+    # plotData(log)
+
+    ## TEST HOF
+    X = [np.around(np.linspace(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(2)]
+    y = pagie1
+    test(toolbox, hof[0], X, y)
 
     return pop, log, hof
 

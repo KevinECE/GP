@@ -1,4 +1,4 @@
-from helper.gp import *
+from benchmark.myhelper import *
 
 DATA_SIZE = 50
 

@@ -8,17 +8,23 @@ from deap import creator
 from deap import tools
 from deap import gp
 from deap.benchmarks import gp as benchmark
-import matplotlib.pyplot as plt
 import pandas as pd
 
-DATA_MAX = 5
-DATA_MIN = -5
-STEP_SIZE = 0.4
-DATA_SIZE = (DATA_MAX - DATA_MIN) / STEP_SIZE
+from myhelper import plotData
+
+DATA_MAX = 50
+DATA_MIN = -50
+# STEP_SIZE = 0.4
+DATA_SIZE = 1000
+NUM_FEATURES = 5
+
+mydata = np.transpose([np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
 
 
 # Define new functions
 def protectedDiv(left, right):
+    if right == 0:
+        return 1
     try:
         return left / right
     except ZeroDivisionError:
@@ -28,14 +34,36 @@ def protectedDiv(left, right):
 def absLog(n):
     try:
         return math.log(math.fabs(n))
-    except ValueError:
+    except ValueError or OverflowError:
         return 1
 
+
 def protectedExp(x):
-    try:
+    if math.fabs(x) > 8:
+        return 1
+    else:
         return math.exp(x)
+
+
+def square(x):
+    try:
+        return x**2
     except OverflowError:
-        return 1000000
+        return 1
+
+
+def cube(x):
+    try:
+        return x**3
+    except OverflowError:
+        return 1
+
+
+def protectedSqrt(x):
+    if x < 0:
+        return 1
+    else:
+        return math.sqrt(x)
 
 
 # Koza Set: +, -, *, %, sin, cos, exp, ln(|x|)
@@ -48,13 +76,19 @@ pset.addPrimitive(math.sin, 1)
 pset.addPrimitive(math.cos, 1)
 pset.addPrimitive(protectedExp, 1)
 pset.addPrimitive(absLog, 1)
+pset.addPrimitive(square, 1)
+pset.addPrimitive(cube, 1)
+pset.addPrimitive(math.tan, 1)
+pset.addPrimitive(math.tanh, 1)
+pset.addPrimitive(protectedSqrt, 1)
+pset.addEphemeralConstant("rand64double", lambda: random.uniform(-1000, 1000))
 
 
-pset.renameArguments(ARG0='x1')
-pset.renameArguments(ARG1='x2')
-pset.renameArguments(ARG2='x3')
-pset.renameArguments(ARG3='x4')
-pset.renameArguments(ARG4='x5')
+pset.renameArguments(ARG0='x0')
+pset.renameArguments(ARG1='x1')
+pset.renameArguments(ARG2='x2')
+pset.renameArguments(ARG3='x3')
+pset.renameArguments(ARG4='x4')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -67,23 +101,21 @@ toolbox.register("compile", gp.compile, pset=pset)
 
 
 # Pagie 1 Function
-def korns7(x1, x2, x3, x4, x5):
-    return 213.80940889 * (1 - math.exp(-0.54723748542 * x1))
+def korns7(x0, x1, x2, x3, x4):
+    return 213.80940889 * (1 - math.exp(-0.54723748542 * x0))
 
 
-def evalSymbReg(individual, points, realFunc):
+def evalSymbReg(individual, X, y):
     # Transform the tree expression in a callable function
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
-    # sqerrors = ((func(x[0], x[1]) - realFunc(x)) ** 2 for x in points)
-    sqerrors = [(func(x1, x2) - realFunc(x1,  x2)) ** 2 for x1, x2 in zip(points[0], points[1])]
+    sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
 
-    return math.fsum(sqerrors) / len(points[0]),
+    return math.fsum(sqerrors) / len(X),
 
 
 # toolbox.register("evaluate", evalSymbReg, points=[x/10. for x in range(-10,10)])
-toolbox.register("evaluate", evalSymbReg, points=[np.around(np.linspace(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(2)],
-                 realFunc=pagie1)
+toolbox.register("evaluate", evalSymbReg, X=mydata, y=korns7)
 toolbox.register("select", tools.selTournament, tournsize=3)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
@@ -101,44 +133,10 @@ toolbox.decorate("mate", gp.staticLimit(key=len, max_value=limitLength))
 toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=limitLength))
 
 
-def plotData(logbook):
-    """Plot data from log
-
-    :param log:
-    :return:
-    """
-    gen = logbook.select("gen")
-    fit_mins = logbook.chapters["fitness"].select("min")
-    fit_meds = logbook.chapters["fitness"].select("med")
-    size_avgs = logbook.chapters["size"].select("avg")
-    # fit_meds = list(filter(lambda x: x>4000, fit_meds))
-
-    fig, ax1 = plt.subplots()
-    line1 = ax1.plot(gen, fit_mins, "b-", label="Minimum Fitness")
-    ax1.set_xlabel("Generation")
-    ax1.set_ylabel("Fitness", color="b")
-    for tl in ax1.get_yticklabels():
-        tl.set_color("b")
-
-    line2 = ax1.plot(gen, fit_meds, "g-", label="Median Fitness")
-
-    # ax3 = ax1.twinx()
-    # line3 = ax3.plot(gen, size_avgs, "r-", label="Average Size")
-    # ax3.set_ylabel("Size", color="r")
-    # for tl in ax3.get_yticklabels():
-    #     tl.set_color("r")
-
-    # lns = line1 + line2 + line3
-    lns = line1 + line2
-    labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs, loc="center right")
-
-    plt.show()
-
 
 def main():
     random.seed()
-
+    print("My data = " + str(mydata))
     pop = toolbox.population(n=1000)
     hof = tools.HallOfFame(5)
 
@@ -150,7 +148,7 @@ def main():
     stats_fit.register("min", np.min)
     stats_size.register("avg", np.mean)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.3, 50, stats=stats_fit,
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.3, 100, stats=stats_fit,
                                    halloffame=hof, verbose=True)
 
     print("HALL OF FAME " + str(hof[0]))

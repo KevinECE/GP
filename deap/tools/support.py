@@ -1,4 +1,4 @@
-
+import numpy as np
 
 try:
     import pickle as pickle
@@ -203,8 +203,6 @@ class Statistics(object):
         :param data: Sequence of objects on which the statistics are computed.
         """
         values = tuple(self.key(elem) for elem in data)
-        # print("LEN VALUES: " + str(len(values)))
-        # print("VALUES: " + str(values))
         entry = dict()
         for key, func in self.functions.items():
             entry[key] = func(values)
@@ -530,6 +528,7 @@ class HallOfFame(object):
                 # "for else"
                 self.insert(population[0])
                 continue
+
             if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
                 for hofer in self:
                     # Loop through the hall of fame to check for any

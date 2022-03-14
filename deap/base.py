@@ -28,6 +28,7 @@ except ImportError:
 from copy import deepcopy
 from functools import partial
 from operator import mul, truediv
+from numpy import asarray, mean
 
 
 class Toolbox(object):
@@ -180,6 +181,7 @@ class Fitness(object):
 
         if len(values) > 0:
             self.values = values
+
 
     def getValues(self):
         return tuple(map(truediv, self.wvalues, self.weights))

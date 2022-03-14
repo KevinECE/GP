@@ -55,21 +55,30 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
     logbook = tools.Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
-    ### DOWNSAMPLE
-    # Currently using len(X[0]) but if ik y is target data I could just use len(y)
-    indices = random.sample(list(range(0, len(X[0]))), sample_size)
-    ds_X = [np.array(x)[indices].tolist() for x in X]
-
-    # EVALUATE
-    fitnesses = toolbox.map(partial(toolbox.evaluate, X = ds_X), population)
+    # Evaluate all cases to calculate aggregate fitness
+    fitnesses = toolbox.map(partial(toolbox.evaluate, X=X), population)
     for ind, fit in zip(population, fitnesses):
+        ind.fitness.avalue = np.mean(np.asfarray(fit))
+
+    # Downsample cases
+    print(len(X))
+    print(sample_size)
+    indices = random.sample(list(range(0, len(X))), sample_size)
+    ds_X = np.array(X)[indices].tolist()
+    print("DOWNSAMPLED " + str(ds_X))
+
+
+    # Evaluate downsampled cases
+    ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X), population)
+    for ind, fit in zip(population, ds_fitnesses):
         ind.fitness.values = fit
 
+    # Update hall of fame
     if halloffame is not None:
         halloffame.update(population)
-
+    # Compile stats
     record = stats.compile(population) if stats else {}
-    logbook.record(gen=0, nevals=sample_size*len(population), **record)    # Length of evaluations is now the sample size
+    logbook.record(gen=0, nevals=sample_size*len(population), **record)
     if verbose:
         print(logbook.stream)
 
@@ -81,14 +90,18 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
-        ### DOWNSAMPLE
-        # Currently using len(X[0]) but if ik y is target data I could just use len(y)
-        indices = random.sample(list(range(0, len(X[0]))), sample_size)
-        ds_X = [np.array(x)[indices].tolist() for x in X]
-
-        # EVALUATE
-        fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X), offspring)
+        # Evaluate all cases to calculate aggregate fitness
+        fitnesses = toolbox.map(partial(toolbox.evaluate, X=X), offspring)
         for ind, fit in zip(offspring, fitnesses):
+            ind.fitness.avalue = np.mean(np.asfarray(fit))
+
+        # Downsample cases
+        indices = random.sample(list(range(0, len(X))), sample_size)
+        ds_X = np.array(X)[indices].tolist()
+
+        # Evaluate downsampled cases
+        ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X), offspring)
+        for ind, fit in zip(offspring, ds_fitnesses):
             ind.fitness.values = fit
 
         # Update the hall of fame with the generated individuals
@@ -100,7 +113,7 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
 
         # Append the current generation statistics to the logbook
         record = stats.compile(population) if stats else {}
-        logbook.record(gen=gen, nevals=sample_size*len(population), **record)   # Length of evaluations is now the sample size
+        logbook.record(gen=gen, nevals=sample_size*len(population), **record)
         if verbose:
             print(logbook.stream)
 
@@ -111,7 +124,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
     """Part of an evolutionary algorithm applying only the variation part
     (crossover **and** mutation). The modified individuals have their
     fitness invalidated. The individuals are cloned so returned population is
-    independent of the input population.
+    independent of the input population
 
     :param population: A list of individuals to vary.
     :param toolbox: A :class:`~deap.base.Toolbox` that contains the evolution

@@ -1,14 +1,14 @@
 from benchmark.myhelper import *
 import pandas as pd
 
-# Data constants
 DATA_MAX = 50
 DATA_MIN = -50
+# STEP_SIZE = 0.4
 DATA_SIZE = 1000
 NUM_FEATURES = 5
 
-# Downsample constants
 SAMPLE_SIZE = DATA_SIZE // 20
+
 
 # Pagie 1 Function
 def pagie1(x, y):
@@ -21,11 +21,9 @@ def pagie1(x, y):
     else:
         return 1 / (1 + pow(x, -4)) + 1 / (1 + pow(y, -4))
 
-
 # Pagie 1 Function
 def korns7(x0, x1, x2, x3, x4):
     return 213.80940889 * (1 - math.exp(-0.54723748542 * x0))
-
 
 def test(toolbox, ind, X, y):
     func = toolbox.compile(expr=ind)
@@ -38,17 +36,18 @@ def main():
     random.seed()
     toolbox = base.Toolbox()
 
-    # DATA
-    X = np.transpose([np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
+    # DATAa
+    X = np.transpose(
+        [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
     print(X)
     # print("Sample size " + str(SAMPLE_SIZE))
     y = korns7
 
     # GP
-    initGP(toolbox, X, y, num_features=2, sample_size=SAMPLE_SIZE, limitDepth=10, limitSize=15)
+    initGP(toolbox, X, y, num_features=NUM_FEATURES, sample_size=SAMPLE_SIZE, limitDepth=10, limitSize=15)
 
     # POP
-    pop = toolbox.population(n=200)
+    pop = toolbox.population(n=1000)
 
     # STATS
     hof = tools.HallOfFame(5)
