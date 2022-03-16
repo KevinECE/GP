@@ -7,7 +7,7 @@ DATA_MIN = -50
 DATA_SIZE = 1000
 NUM_FEATURES = 5
 
-SAMPLE_SIZE = DATA_SIZE // 20
+SAMPLE_SIZE = DATA_SIZE // 5
 
 
 # Pagie 1 Function
@@ -21,9 +21,11 @@ def pagie1(x, y):
     else:
         return 1 / (1 + pow(x, -4)) + 1 / (1 + pow(y, -4))
 
+
 # Pagie 1 Function
 def korns7(x0, x1, x2, x3, x4):
     return 213.80940889 * (1 - math.exp(-0.54723748542 * x0))
+
 
 def test(toolbox, ind, X, y):
     func = toolbox.compile(expr=ind)
@@ -31,6 +33,7 @@ def test(toolbox, ind, X, y):
     df_log = pd.DataFrame(sqerrors)
     df_log.to_csv('..\hoftest.csv', index=False)
     print(np.mean(sqerrors))
+
 
 def main():
     random.seed()
@@ -58,9 +61,8 @@ def main():
     stats_fit.register("min", np.min, axis=0)
     stats_size.register("size avg", np.mean)
 
-
     # RUN
-    pop, logbook = algorithms.gpDownsample(pop, toolbox, X, y, SAMPLE_SIZE, 0.7, 0.3, 50, stats=stats_fit,
+    pop, logbook = algorithms.gpDownsample(pop, toolbox, X, y, SAMPLE_SIZE, 0.7, 0.3, 100, stats=stats_fit,
                                            halloffame=hof, verbose=True)
     # Display hall of fame
     dispHallOfFame(hof)

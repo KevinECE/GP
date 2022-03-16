@@ -153,7 +153,10 @@ def evalSymbReg(individual, toolbox, X, y):
     # Transform the tree expression in a callable function
     func = toolbox.compile(expr=individual)
     # Evaluate the mean squared error between the expression
-    sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
+    try:
+        sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
+    except OverflowError:
+        sqerrors = [1000000000000000000000000000 for x in X]
     return tuple(sqerrors)
 
 
