@@ -314,7 +314,10 @@ def selAutomaticEpsilonLexicase(individuals, k):
 
             cases.pop(0)
 
-        selected_individuals.append(random.choice(candidates))
+        try:
+            selected_individuals.append(random.choice(candidates))
+        except IndexError:
+            print(candidates)
 
     return selected_individuals
 

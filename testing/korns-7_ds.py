@@ -1,14 +1,14 @@
 from benchmark.myhelper import *
 import pandas as pd
 
-# Data constants
 DATA_MAX = 50
 DATA_MIN = -50
+# STEP_SIZE = 0.4
 DATA_SIZE = 1000
 NUM_FEATURES = 5
 
-# Downsample constants
-SAMPLE_SIZE = DATA_SIZE // 20
+SAMPLE_SIZE = int(DATA_SIZE * .15)
+
 
 # Pagie 1 Function
 def pagie1(x, y):
@@ -34,21 +34,23 @@ def test(toolbox, ind, X, y):
     df_log.to_csv('..\hoftest.csv', index=False)
     print(np.mean(sqerrors))
 
+
 def main():
     random.seed()
     toolbox = base.Toolbox()
 
-    # DATA
-    X = np.transpose([np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
+    # DATAa
+    X = np.transpose(
+        [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
     print(X)
     # print("Sample size " + str(SAMPLE_SIZE))
     y = korns7
 
     # GP
-    initGP(toolbox, X, y, num_features=2, sample_size=SAMPLE_SIZE, limitDepth=10, limitSize=15)
+    initGP(toolbox, X, y, num_features=NUM_FEATURES, sample_size=SAMPLE_SIZE, limitDepth=10, limitSize=15)
 
     # POP
-    pop = toolbox.population(n=200)
+    pop = toolbox.population(n=100)
 
     # STATS
     hof = tools.HallOfFame(5)
@@ -57,11 +59,11 @@ def main():
     mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
     stats_fit.register("med", np.median, axis=0)
     stats_fit.register("min", np.min, axis=0)
+    stats_fit.register("max", np.max, axis=0)
     stats_size.register("size avg", np.mean)
 
-
     # RUN
-    pop, logbook = algorithms.gpDownsample(pop, toolbox, X, y, SAMPLE_SIZE, 0.7, 0.3, 50, stats=stats_fit,
+    pop, logbook = algorithms.gpDownsample(pop, toolbox, X, y, SAMPLE_SIZE, 0.7, 0.3, 100, stats=stats_fit,
                                            halloffame=hof, verbose=True)
     # Display hall of fame
     dispHallOfFame(hof)
