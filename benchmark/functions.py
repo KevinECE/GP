@@ -33,7 +33,7 @@ def korns(pset):
 
     pset.addPrimitive(operator.add, 2)
     pset.addPrimitive(operator.sub, 2)
-    pset.addPrimitive(operator.mul, 2)
+    pset.addPrimitive(protectedMult, 2)
     pset.addPrimitive(aqDiv, 2)
     pset.addPrimitive(protectedSin, 1)
     pset.addPrimitive(protectedCos, 1)
@@ -64,14 +64,29 @@ def keijzer(pset):
     pset.addPrimitive(operator.po, 2)
     pset.addPrimitive(protectedSqrt, 1)
 
+
 ########################################################################################################################
 # GP FUNCTIONS
 ########################################################################################################################
+def protectedMult(left, right):
+    res = left * right
+    if np.isnan(res):
+        return np.inf
+    return res
+
+
+def protectedSub(left, right):
+    res = np.subtract(left, right)
+    if np.isnan(res):
+        return np.inf
+    return res
+
+
 def aqDiv(left, right):
-    if left == np.inf and right == np.inf:
-        return 1
-    else:
-        return left / np.sqrt(1 + right ** 2)
+    res = np.divide(left, np.sqrt(1 + right ** 2))
+    if np.isnan(res):
+        return np.inf
+    return res
 
 
 def absLog(x):
@@ -95,28 +110,28 @@ def protectedSqrt(x):
 
 
 def protectedSin(x):
-    if x == float('inf'):
-        return float('inf')
-    else:
-        return np.sin(x)
+    res = np.sin(x)
+    if np.isnan(res):
+        return np.inf
+    return res
 
 
 def protectedCos(x):
-    if x == float('inf'):
-        return float('inf')
-    else:
-        return np.cos(x)
+    res = np.cos(x)
+    if np.isnan(res):
+        return np.inf
+    return res
 
 
 def protectedTan(x):
-    if x == float('inf'):
-        return float('inf')
-    else:
-        return np.tan(x)
+    res = np.tan(x)
+    if np.isnan(res):
+        return np.inf
+    return res
 
 
 def protectedTanh(x):
-    if x == float('inf'):
-        return float('inf')
-    else:
-        return np.tanh(x)
+    res = np.tanh(x)
+    if np.isnan(res):
+        return np.inf
+    return res

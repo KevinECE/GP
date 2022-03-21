@@ -5,10 +5,19 @@ import random
 from deap import algorithms
 from benchmarks import *
 
-DATA_MIN = -1
-DATA_MAX = 1
-DATA_SIZE = 20
-NUM_FEATURES = 1
+import time
+
+from warnings import filterwarnings
+filterwarnings("ignore")
+
+DATA_MIN = -50
+DATA_MAX = 50
+DATA_SIZE = 1000
+NUM_FEATURES = 5
+
+BENCHMARK = korns1
+FUNCTION_SET = "korns"
+SELECTION = "tournament"
 
 
 # Test HOF individuals
@@ -40,11 +49,12 @@ def main():
     # DATA
     X = np.transpose(
         [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
-    y = koza2
+    y = BENCHMARK
 
     # GP
-    initGP(toolbox, X, y, num_features=NUM_FEATURES, function_set="Koza", selection="Tournament",
+    initGP(toolbox, X, y, num_features=NUM_FEATURES, function_set=FUNCTION_SET, selection=SELECTION,
            limitDepth=10, limitSize=15)
+    dispConfig(BENCHMARK, FUNCTION_SET, SELECTION, DATA_MIN, DATA_MAX, DATA_SIZE, NUM_FEATURES)
 
     # POP
     pop = toolbox.population(n=1000)
@@ -52,9 +62,15 @@ def main():
     # HOF
     hof = tools.HallOfFame(5)
 
+    # START TIME
+    start_time = time.time()
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     # RUN
     pop, logbook = algorithms.eaSimple(pop, toolbox, 0.9, 0.1, 100, stats=stats(),
                                    halloffame=hof, verbose=True)
+    # STOP TIME
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     # Display hall of fame
     dispHallOfFame(hof)

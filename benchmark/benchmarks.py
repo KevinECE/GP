@@ -34,7 +34,7 @@ def nguyen10(x, y):
     return 2 * np.sin(x) * np.cos(y)
 
 
-def korns1(v):
+def korns1(x, y, z, v, w):
     """Korns-1 benchmark function.
 
     .. list-table::

@@ -12,7 +12,7 @@ from functions import *
 ########################################################################################################################
 # INITIALIZE GP
 ########################################################################################################################
-def initGP(toolbox, X, y, num_features, function_set="Koza", selection="Tournament", sample_size=None, limitDepth=None,
+def initGP(toolbox, X, y, num_features, function_set="koza", selection="tournament", sample_size=None, limitDepth=None,
            limitSize=None, realData=False):
     """
     :param toolbox: toolbox used to init gp
@@ -35,13 +35,13 @@ def initGP(toolbox, X, y, num_features, function_set="Koza", selection="Tourname
     #     pset.renameArguments(arg)
 
     # Define function set
-    if function_set == "Koza":
+    if function_set == "koza":
         koza(pset)
-    elif function_set == "Korns":
+    elif function_set == "korns":
         korns(pset)
 
     # Set evaluate and select functions based on whether tournament or lexicase
-    if selection == "Tournament":
+    if selection == "tournament":
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
@@ -105,6 +105,16 @@ def evalTournSymbReg(individual, toolbox, X, y):
 ########################################################################################################################
 # DISPLAY FUNCTIONS
 ########################################################################################################################
+def dispConfig(benchmark, func_set, selection, sample_size=None, data_min=None, data_max=None, data_size=None, num_features=None):
+    print("########## RUN PARAMETERS ##########")
+    print("Benchmark: " + str(benchmark))
+    print("Function Set: " + str(func_set))
+    print("Selection: " + str(selection))
+    if sample_size is not None: print("Sample size: " + str(100*(sample_size/data_size)) + "%")
+    if num_features is not None: print("# Features: " + str(num_features))
+    if data_min is not None: print("Data: [" + str(data_min) + ", " + str(data_max) + ", " + str(data_size) + "]")
+
+
 def dispHallOfFame(hof):
     print("HALL OF FAME ")
     counter = 0
