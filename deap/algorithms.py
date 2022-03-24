@@ -56,7 +56,7 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
     # Evaluate all cases to calculate aggregate fitness
-    fitnesses = toolbox.map(partial(toolbox.evaluate, X=X), population)
+    fitnesses = toolbox.map(partial(toolbox.evaluate, X=X, y=y), population)
     for ind, fit in zip(population, fitnesses):
         ind.fitness.avalue = np.mean(np.asfarray(fit))
 
@@ -65,11 +65,12 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
     print(sample_size)
     indices = random.sample(list(range(0, len(X))), sample_size)
     ds_X = np.array(X)[indices].tolist()
-    print("DOWNSAMPLED " + str(ds_X))
-
+    ds_y = np.array(y)[indices].tolist()
+    print("DOWNSAMPLED  X" + str(ds_X))
+    print("DOWNSAMPLED  y" + str(ds_y))
 
     # Evaluate downsampled cases
-    ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X), population)
+    ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X, y=ds_y), population)
     for ind, fit in zip(population, ds_fitnesses):
         ind.fitness.values = fit
 
@@ -91,16 +92,17 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
 
         # Evaluate all cases to calculate aggregate fitness
-        fitnesses = toolbox.map(partial(toolbox.evaluate, X=X), offspring)
+        fitnesses = toolbox.map(partial(toolbox.evaluate, X=X, y=y), offspring)
         for ind, fit in zip(offspring, fitnesses):
             ind.fitness.avalue = np.mean(np.asfarray(fit))
 
         # Downsample cases
         indices = random.sample(list(range(0, len(X))), sample_size)
         ds_X = np.array(X)[indices].tolist()
+        ds_y = np.array(y)[indices].tolist()
 
         # Evaluate downsampled cases
-        ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X), offspring)
+        ds_fitnesses = toolbox.map(partial(toolbox.evaluate, X=ds_X, y=ds_y), offspring)
         for ind, fit in zip(offspring, ds_fitnesses):
             ind.fitness.values = fit
 

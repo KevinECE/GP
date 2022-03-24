@@ -65,6 +65,26 @@ def keijzer(pset):
     pset.addPrimitive(protectedSqrt, 1)
 
 
+def pmlb(pset, num_features):
+    """# PMLB Set: +, *, aq, sin, cos
+
+    :param pset: deap gp problem set object used to add primitives to th emodel
+    :param num_features: number of features
+    """
+    pset.addPrimitive(operator.add, 2)
+    pset.addPrimitive(operator.sub, 2)
+    pset.addPrimitive(operator.mul, 2)
+    pset.addPrimitive(aqDiv, 2)
+    pset.addPrimitive(protectedSin, 1)
+    pset.addPrimitive(protectedCos, 1)
+
+    old = ['ARG' + str(i) for i in range(5)]
+    new = ['X' + str(i) for i in range(5)]
+    args = dict(zip(old, new))
+    pset.renameArguments(**args)
+
+
+
 ########################################################################################################################
 # GP FUNCTIONS
 ########################################################################################################################

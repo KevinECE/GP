@@ -1,29 +1,47 @@
+from pmlb import fetch_data
+from sklearn.model_selection import train_test_split
 from benchmark.myhelper import *
 import pandas as pd
 import random
-
 from deap import algorithms
-from benchmarks import *
-
-import time
-
+import benchmarks
 from warnings import filterwarnings
+
 filterwarnings("ignore")
 
-DATA_MIN = -50
-DATA_MAX = 50
-DATA_SIZE = 1000
-NUM_FEATURES = 5
+########################################################################################################################
+# DATA
+########################################################################################################################
+# X = np.transpose(
+#     [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
+# y = BENCHMARK
+X, y = fetch_data('594_fri_c2_100_5', return_X_y=True)
+train_X, test_X, train_y, test_y = train_test_split(X, y)
 
-BENCHMARK = korns1
-FUNCTION_SET = "korns"
-SELECTION = "tournament"
+########################################################################################################################
+# DATA PARAMS
+# ########################################################################################################################
+# DATA_MIN = -50
+# DATA_MAX = 50
+DATA_SIZE = train_X
+NUM_FEATURES = len(X[0])
 
+BENCHMARK = benchmarks.koza2
+FUNCTION_SET = FuncSet.PMLB
+SELECTION = Select.TOURN
+
+########################################################################################################################
+# GP PARAMS
+########################################################################################################################
+POP_SIZE = 1000
+NUM_GENS = 100
+CXPB = 0.9
+MUTPB = 0.1
 
 # Test HOF individuals
 def test(toolbox, ind, X, y):
     func = toolbox.compile(expr=ind)
-    sqerrors = [(func(*x) - y(*x)) ** 2 for x in X]
+    sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
     df_log = pd.DataFrame(sqerrors)
     df_log.to_csv('..\hoftest.csv', index=False)
     print(np.mean(sqerrors))
@@ -46,15 +64,20 @@ def main():
     random.seed()
     toolbox = base.Toolbox()
 
-    # DATA
-    X = np.transpose(
-        [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])
-    y = BENCHMARK
-
     # GP
-    initGP(toolbox, X, y, num_features=NUM_FEATURES, function_set=FUNCTION_SET, selection=SELECTION,
+    initGP(toolbox, train_X, train_y,
+           num_features=NUM_FEATURES,
+           function_set=FUNCTION_SET,
+           selection=SELECTION,
            limitDepth=10, limitSize=15)
-    dispConfig(BENCHMARK, FUNCTION_SET, SELECTION, DATA_MIN, DATA_MAX, DATA_SIZE, NUM_FEATURES)
+
+    # dispConfig(BENCHMARK,
+    #            FUNCTION_SET,
+    #            SELECTION,
+    #            DATA_MIN,
+    #            DATA_MAX,
+    #            DATA_SIZE,
+    #            NUM_FEATURES)
 
     # POP
     pop = toolbox.population(n=1000)
@@ -66,8 +89,8 @@ def main():
     start_time = time.time()
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    # RUN
-    pop, logbook = algorithms.eaSimple(pop, toolbox, 0.9, 0.1, 100, stats=stats(),
+    # # RUN
+    pop, logbook = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NUM_GENS, stats=stats(),
                                    halloffame=hof, verbose=True)
     # STOP TIME
     print("--- %s seconds ---" % (time.time() - start_time))
@@ -76,7 +99,7 @@ def main():
     dispHallOfFame(hof)
 
     for h in hof:
-        test(toolbox, h, X, y)
+        test(toolbox, h, test_X, test_y)
 
     # PLOT
     plotData(logbook)
