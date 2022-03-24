@@ -1,0 +1,185 @@
+Index: benchmark/tournament.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from pmlb import fetch_data\r\nfrom sklearn.model_selection import train_test_split\r\nfrom benchmark.myhelper import *\r\nimport pandas as pd\r\nimport random\r\nfrom deap import algorithms\r\nimport benchmarks\r\nfrom warnings import filterwarnings\r\n\r\nfilterwarnings(\"ignore\")\r\n\r\n########################################################################################################################\r\n# DATA\r\n########################################################################################################################\r\n# X = np.transpose(\r\n#     [np.around(np.random.uniform(DATA_MIN, DATA_MAX, int(DATA_SIZE)), 1).tolist() for row in range(NUM_FEATURES)])\r\n# y = BENCHMARK\r\nX, y = fetch_data('594_fri_c2_100_5', return_X_y=True)\r\ntrain_X, test_X, train_y, test_y = train_test_split(X, y)\r\n\r\n########################################################################################################################\r\n# DATA PARAMS\r\n# ########################################################################################################################\r\n# DATA_MIN = -50\r\n# DATA_MAX = 50\r\nDATA_SIZE = train_X\r\nNUM_FEATURES = len(X[0])\r\n\r\nBENCHMARK = benchmarks.koza2\r\nFUNCTION_SET = FuncSet.PMLB\r\nSELECTION = Select.TOURN\r\n\r\n########################################################################################################################\r\n# GP PARAMS\r\n########################################################################################################################\r\nPOP_SIZE = 1000\r\nNUM_GENS = 100\r\nCXPB = 0.9\r\nMUTPB = 0.1\r\n\r\n# Test HOF individuals\r\ndef test(toolbox, ind, X, y):\r\n    func = toolbox.compile(expr=ind)\r\n    sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]\r\n    df_log = pd.DataFrame(sqerrors)\r\n    df_log.to_csv('..\\hoftest.csv', index=False)\r\n    print(np.mean(sqerrors))\r\n\r\n\r\n# Initialize stats objectc\r\ndef stats():\r\n    stats_fit = tools.Statistics(lambda ind: ind.fitness.values)\r\n    stats_size = tools.Statistics(len)\r\n    # mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)\r\n    stats_fit.register(\"med\", np.median)\r\n    # mstats.register(\"std\", np.std)\r\n    stats_fit.register(\"min\", np.min)\r\n    stats_size.register(\"avg\", np.mean)\r\n    return stats_fit\r\n\r\n\r\ndef main():\r\n    # INIT\r\n    random.seed()\r\n    toolbox = base.Toolbox()\r\n\r\n    # GP\r\n    initGP(toolbox, train_X, train_y,\r\n           num_features=NUM_FEATURES,\r\n           function_set=FUNCTION_SET,\r\n           selection=SELECTION,\r\n           limitDepth=10, limitSize=15)\r\n\r\n    # dispConfig(BENCHMARK,\r\n    #            FUNCTION_SET,\r\n    #            SELECTION,\r\n    #            DATA_MIN,\r\n    #            DATA_MAX,\r\n    #            DATA_SIZE,\r\n    #            NUM_FEATURES)\r\n\r\n    # POP\r\n    pop = toolbox.population(n=1000)\r\n\r\n    # HOF\r\n    hof = tools.HallOfFame(5)\r\n\r\n    # START TIME\r\n    start_time = time.time()\r\n    print(\"--- %s seconds ---\" % (time.time() - start_time))\r\n\r\n    # # RUN\r\n    pop, logbook = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NUM_GENS, stats=stats(),\r\n                                   halloffame=hof, verbose=True)\r\n    # STOP TIME\r\n    print(\"--- %s seconds ---\" % (time.time() - start_time))\r\n\r\n    # Display hall of fame\r\n    dispHallOfFame(hof)\r\n\r\n    for h in hof:\r\n        test(toolbox, h, test_X, test_y)\r\n\r\n    # PLOT\r\n    plotData(logbook)\r\n\r\n\r\nif __name__ == \"__main__\":\r\n    main()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmark/tournament.py b/benchmark/tournament.py
+--- a/benchmark/tournament.py	(revision 3a66a6290a24520fe443cf8ca55cbdf7112c814c)
++++ b/benchmark/tournament.py	(date 1648159183810)
+@@ -42,8 +42,8 @@
+ def test(toolbox, ind, X, y):
+     func = toolbox.compile(expr=ind)
+     sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
+-    df_log = pd.DataFrame(sqerrors)
+-    df_log.to_csv('..\hoftest.csv', index=False)
++    # df_log = pd.DataFrame(sqerrors)
++    # df_log.to_csv('..\hoftest.csv', index=False)
+     print(np.mean(sqerrors))
+ 
+ 
+Index: hoftest.csv
+===================================================================
+diff --git a/hoftest.csv b/hoftest.csv
+deleted file mode 100644
+--- a/hoftest.csv	(revision 3a66a6290a24520fe443cf8ca55cbdf7112c814c)
++++ /dev/null	(revision 3a66a6290a24520fe443cf8ca55cbdf7112c814c)
+@@ -1,26 +0,0 @@
+-0
+-0.016307086343133874
+-0.12484871931740367
+-0.16204367218696744
+-0.17320131257187887
+-0.10612804321850716
+-0.01707140977175553
+-0.21581997713316003
+-0.16034270973949893
+-0.07990218001673402
+-0.32593624130340637
+-0.10980560952308452
+-1.5174855521824449
+-0.06082445276198704
+-0.048641686494472265
+-0.9433527981852428
+-0.1982675039270725
+-0.0989018597659699
+-0.3331404668739211
+-1.0522388407883299
+-0.8648776407880473
+-1.1951861042611605
+-0.03199902635789889
+-3.5572061813616203
+-0.0013271386117954887
+-0.3609336793943024
+Index: hof_debug.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/hof_debug.py b/hof_debug.py
+new file mode 100644
+--- /dev/null	(date 1648159497773)
++++ b/hof_debug.py	(date 1648159497773)
+@@ -0,0 +1,119 @@
++from pmlb import fetch_data
++from sklearn.model_selection import train_test_split
++import d
++import random
++from deap import algorithms
++import benchmarks
++from warnings import filterwarnings
++
++filterwarnings("ignore")
++
++########################################################################################################################
++# DATA
++########################################################################################################################
++datasets = ['594_fri_c2_100_5', '644_fri_c4_250_25', '210_cloud']
++########################################################################################################################
++# GP PARAMS
++########################################################################################################################
++POP_SIZE = 1000
++NUM_GENS = 50
++CXPB = 0.9
++MUTPB = 0.1
++
++
++# Initialize stats object
++def stats():
++    stats_fit = tools.Statistics(lambda ind: ind.fitness.avalue)
++    stats_size = tools.Statistics(len)
++    stats_fit.register("med", np.median, axis=0)
++    stats_fit.register("min", np.min, axis=0)
++    stats_fit.register("max", np.max, axis=0)
++    stats_size.register("size avg", np.mean)
++    return stats_fit
++
++def test(toolbox, ind, X, y):
++    func = toolbox.compile(expr=ind)
++    sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
++    # df_log = pd.DataFrame(sqerrors)
++    # df_log.to_csv('..\hoftest.csv', index=False)
++    print(np.mean(sqerrors))
++
++
++# Display dataset and other info
++def display(dataset, func_set, selection, sample_size=None, data_size=None, num_features=None):
++    """ Display parameters for next run
++
++    :param dataset:
++    :param func_set:
++    :param selection:
++    :param sample_size:
++    :param data_size:
++    :param num_features:
++    :return:
++    """
++    print("########## RUN PARAMETERS ##########")
++    print("Dataset: " + str(dataset))
++    print("Function Set: " + str(func_set))
++    print("Selection: " + str(selection))
++    print("Sample size: " + str((100 * sample_size) // data_size) + "%")
++    print("Data size: " + str(data_size))
++    print("# Features: " + str(num_features))
++    print("####################################")
++
++
++def main():
++    # INIT
++    random.seed()
++    toolbox = base.Toolbox()
++
++    # GP
++    # Create relevant classes
++    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
++    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
++
++    # Register toolbox functions that are independent of pset
++    toolbox.register("evaluate", evalRealSymbReg, toolbox=toolbox)
++    toolbox.register("select", tools.selAutomaticEpsilonLexicase)
++
++    toolbox.register("mate", gp.cxOnePoint)
++    toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
++
++    SAMPLE_SIZE = int(len(train_X) * 0.10)
++
++    # Display info
++    display(data, "PMLB", Select.LEX, SAMPLE_SIZE, data_size=len(train_X), num_features=len(train_X[0]))
++
++    # Create new fitness class for sample size
++    creator.create("FitnessMin", base.Fitness, avalue=1, weights=(-1.0,) * int(SAMPLE_SIZE))
++
++    # Register new pset
++    pset = gp.PrimitiveSet("MAIN", num_features)
++    pmlb(pset, num_features)
++
++    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=0, max_=2)
++    toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
++    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
++    toolbox.register("compile", gp.compile, pset=pset)
++    toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
++
++    # Get data
++    X, y = fetch_data(data, return_X_y=True)
++    train_X, test_X, train_y, test_y = train_test_split(X, y)
++    num_features = len(train_X[0])
++    SAMPLE_SIZE = int(len(train_X) * 0.10)
++
++    # POP
++    pop = toolbox.population(n=POP_SIZE)
++
++    # RUN
++    pop, logbook = algorithms.gpDownsample(pop, toolbox, train_X, train_y, SAMPLE_SIZE, CXPB, MUTPB, NUM_GENS,
++                                           stats=stats(), halloffame=hof, verbose=True)
++
++    # HOF
++    hof = tools.HallOfFame(1)
++
++    dispHallOfFame(hof)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/testing/hof_debug.py b/testing/hof_debug.py
+deleted file mode 100644
