@@ -42,8 +42,8 @@ MUTPB = 0.1
 def test(toolbox, ind, X, y):
     func = toolbox.compile(expr=ind)
     sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
-    df_log = pd.DataFrame(sqerrors)
-    df_log.to_csv('..\hoftest.csv', index=False)
+    # df_log = pd.DataFrame(sqerrors)
+    # df_log.to_csv('..\hoftest.csv', index=False)
     print(np.mean(sqerrors))
 
 
