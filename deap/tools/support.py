@@ -528,8 +528,8 @@ class HallOfFame(object):
                 # "for else"
                 self.insert(population[0])
                 continue
-
-            if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
+                        
+            if ind.fitness.aggregate > self[-1].fitness.aggregate or len(self) < self.maxsize:
                 for hofer in self:
                     # Loop through the hall of fame to check for any
                     # similar individual
@@ -541,6 +541,19 @@ class HallOfFame(object):
                     if len(self) >= self.maxsize:
                         self.remove(-1)
                     self.insert(ind)
+
+            # if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
+            #     for hofer in self:
+            #         # Loop through the hall of fame to check for any
+            #         # similar individual
+            #         if self.similar(ind, hofer):
+            #             break
+            #     else:
+            #         # The individual is unique and strictly better than
+            #         # the worst
+            #         if len(self) >= self.maxsize:
+            #             self.remove(-1)
+            #         self.insert(ind)
 
     def insert(self, item):
         """Insert a new individual in the hall of fame using the
@@ -554,10 +567,12 @@ class HallOfFame(object):
         :param item: The individual with a fitness attribute to insert in the
                      hall of fame.
         """
+        # print("A VALUE = " + str(item.fitness.aggregate))
         item = deepcopy(item)
-        i = bisect_right(self.keys, item.fitness)
+        # print("SAME A VALUE = " + str(item.fitness.aggregate))
+        i = bisect_right(self.keys, item.fitness.aggregate)
         self.items.insert(len(self) - i, item)
-        self.keys.insert(i, item.fitness)
+        self.keys.insert(i, item.fitness.aggregate)
 
     def remove(self, index):
         """Remove the specified *index* from the hall of fame.

@@ -96,10 +96,10 @@ def main():
 
 
 
-    # # Display hall of fame
-    # dispHallOfFame(hof)
-    # for h in hof:
-    #     test(toolbox, h, test_X, test_y)
+    # Display hall of fame
+    dispHallOfFame(hof)
+    for h in hof:
+        test(toolbox, h, test_X, test_y)
     #
     # # Log data to csv
     # df_log = pd.DataFrame(logbook)

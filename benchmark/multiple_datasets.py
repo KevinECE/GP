@@ -1,9 +1,8 @@
 from pmlb import fetch_data
 from sklearn.model_selection import train_test_split
-from benchmark.myhelper import *
+from myhelper import *
 import random
 from deap import algorithms
-import benchmarks
 from warnings import filterwarnings
 
 filterwarnings("ignore")
@@ -21,9 +20,18 @@ CXPB = 0.9
 MUTPB = 0.1
 
 
+# Test HOF individuals
+def test(toolbox, ind, X, y):
+    func = toolbox.compile(expr=ind)
+    sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
+    # df_log = pd.DataFrame(sqerrors)
+    # df_log.to_csv('..\hoftest.csv', index=False)
+    print(np.mean(sqerrors))
+
+
 # Initialize stats object
 def stats():
-    stats_fit = tools.Statistics(lambda ind: ind.fitness.avalue)
+    stats_fit = tools.Statistics(lambda ind: ind.fitness.aggregate)
     stats_size = tools.Statistics(len)
     stats_fit.register("med", np.median, axis=0)
     stats_fit.register("min", np.min, axis=0)
@@ -60,10 +68,6 @@ def main():
     toolbox = base.Toolbox()
 
     # GP
-    # Create relevant classes
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
-
     # Register toolbox functions that are independent of pset
     toolbox.register("evaluate", evalRealSymbReg, toolbox=toolbox)
     toolbox.register("select", tools.selAutomaticEpsilonLexicase)
@@ -72,7 +76,7 @@ def main():
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
 
     # HOF
-    hof = tools.HallOfFame(1)
+    hof = tools.HallOfFame(3)
 
     ####################################################################################################################
     # MAIN LOOP
@@ -90,8 +94,8 @@ def main():
         display(data, "PMLB", Select.LEX, SAMPLE_SIZE, data_size=len(train_X), num_features=len(train_X[0]))
 
         # Create new fitness class for sample size
-        creator.create("FitnessMin", base.Fitness, avalue=1, weights=(-1.0,) * int(SAMPLE_SIZE))
-
+        creator.create("FitnessMin", base.Fitness, aggregate=1, weights=(-1.0,) * int(SAMPLE_SIZE))
+        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
         # Register new pset
         pset = gp.PrimitiveSet("MAIN", num_features)
         pmlb(pset, num_features)
@@ -108,6 +112,10 @@ def main():
         # RUN
         pop, logbook = algorithms.gpDownsample(pop, toolbox, train_X, train_y, SAMPLE_SIZE, CXPB, MUTPB, NUM_GENS,
                                                stats=stats(), halloffame=hof, verbose=True)
+
+        # HOF
+        for h in hof:
+            test(toolbox, h, test_X, test_y)
 
         # PLOT
         plotData(logbook, SAMPLE_SIZE, len(train_X))

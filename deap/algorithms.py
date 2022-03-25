@@ -58,7 +58,7 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
     # Evaluate all cases to calculate aggregate fitness
     fitnesses = toolbox.map(partial(toolbox.evaluate, X=X, y=y), population)
     for ind, fit in zip(population, fitnesses):
-        ind.fitness.avalue = np.mean(np.asfarray(fit))
+        ind.fitness.aggregate = np.mean(np.asfarray(fit))
 
     # Downsample cases
     print(len(X))
@@ -94,7 +94,7 @@ def gpDownsample(population, toolbox, X, y, sample_size, cxpb, mutpb, ngen, stat
         # Evaluate all cases to calculate aggregate fitness
         fitnesses = toolbox.map(partial(toolbox.evaluate, X=X, y=y), offspring)
         for ind, fit in zip(offspring, fitnesses):
-            ind.fitness.avalue = np.mean(np.asfarray(fit))
+            ind.fitness.aggregate = np.mean(np.asfarray(fit))
 
         # Downsample cases
         indices = random.sample(list(range(0, len(X))), sample_size)

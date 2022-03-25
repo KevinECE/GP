@@ -1,5 +1,8 @@
 import math
 import matplotlib.pyplot as plt
+import sys
+from os.path import dirname
+sys.path.append(dirname(r'C:\Users\Matthew Merriman\OneDrive - University of Florida\UF\Design_2\DeapProject\GP\deap'))
 from deap import base
 from deap import creator
 from deap import tools

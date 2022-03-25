@@ -259,6 +259,7 @@ class Fitness(object):
         """
         copy_ = self.__class__()
         copy_.wvalues = self.wvalues
+        copy_.aggregate = self.aggregate
         return copy_
 
     def __str__(self):
