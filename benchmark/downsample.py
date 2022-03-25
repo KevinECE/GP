@@ -1,4 +1,4 @@
-from benchmark.myhelper import *
+from myhelper import *
 import pandas as pd
 import random
 import time
