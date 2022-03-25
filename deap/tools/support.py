@@ -529,7 +529,7 @@ class HallOfFame(object):
                 self.insert(population[0])
                 continue
                         
-            if ind.fitness.aggregate > self[-1].fitness.aggregate or len(self) < self.maxsize:
+            if ind.fitness.aggregate < self[-1].fitness.aggregate or len(self) < self.maxsize:
                 for hofer in self:
                     # Loop through the hall of fame to check for any
                     # similar individual
@@ -569,7 +569,7 @@ class HallOfFame(object):
         """
         # print("A VALUE = " + str(item.fitness.aggregate))
         item = deepcopy(item)
-        # print("SAME A VALUE = " + str(item.fitness.aggregate))
+        print("SAME A VALUE = " + str(item.fitness.aggregate))
         i = bisect_right(self.keys, item.fitness.aggregate)
         self.items.insert(len(self) - i, item)
         self.keys.insert(i, item.fitness.aggregate)

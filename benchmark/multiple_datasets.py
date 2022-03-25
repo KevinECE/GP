@@ -14,8 +14,8 @@ datasets = ['594_fri_c2_100_5', '644_fri_c4_250_25', '210_cloud']
 ########################################################################################################################
 # GP PARAMS
 ########################################################################################################################
-POP_SIZE = 1000
-NUM_GENS = 50
+POP_SIZE = 100
+NUM_GENS = 5
 CXPB = 0.9
 MUTPB = 0.1
 
@@ -23,7 +23,7 @@ MUTPB = 0.1
 # Test HOF individuals
 def test(toolbox, ind, X, y):
     func = toolbox.compile(expr=ind)
-    sqerrors = [(func(*x) - y[i]) ** 2 for i, x in enumerate(X)]
+    sqerrors = [np.sqrt((func(*x) - y[i]) ** 2) for i, x in enumerate(X)]
     # df_log = pd.DataFrame(sqerrors)
     # df_log.to_csv('..\hoftest.csv', index=False)
     print(np.mean(sqerrors))
@@ -87,8 +87,10 @@ def main():
         # Get data
         X, y = fetch_data(data, return_X_y=True)
         train_X, test_X, train_y, test_y = train_test_split(X, y)
+        # train_X = [[1, 2 ,3 ,4], [1, 2 ,3, 4]]
+        # train_y = [4, 3, 2, 1]
         num_features = len(train_X[0])
-        SAMPLE_SIZE = int(len(train_X) * 0.10)
+        SAMPLE_SIZE = int(len(train_X) * 1)
 
         # Display info
         display(data, "PMLB", Select.LEX, SAMPLE_SIZE, data_size=len(train_X), num_features=len(train_X[0]))
